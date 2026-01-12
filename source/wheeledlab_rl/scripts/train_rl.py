@@ -14,7 +14,6 @@ simulation_app, args_cli = startup(parser=parser)
 
 import gymnasium as gym
 import os
-import torch
 
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.io import dump_yaml, dump_pickle
@@ -23,7 +22,6 @@ from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
 from wheeledlab_rl.configs import RunConfig
 from wheeledlab_rl import WHEELEDLAB_RL_LOGS_DIR
-from wheeledlab_rl.utils.adaptation_test import run_two_friction_tests
 
 from wheeledlab_rl.utils import (
     OnPolicyRunner as ModifiedRslRunner,
@@ -79,24 +77,14 @@ def main(run_cfg: RunConfig): # TODO: Add SB3 config support
 
     # Wrap the environment in recorder
     if log_cfg.video:
-        # Use per-cell resolution so a 2x2 grid results in a reasonable final size.
-        per_cell_res = (
-            log_cfg.video_resolution[0] // 2,
-            log_cfg.video_resolution[1] // 2,
-        )
         video_kwargs = {
             "video_folder": os.path.join(log_cfg.run_log_dir, "videos"),
             "step_trigger": lambda step: step % log_cfg.video_interval == 0,
             "video_length": log_cfg.video_length,
             "disable_logger": True,
             "enable_wandb": not log_cfg.no_wandb,
-            # per-cell resolution (width, height) for each grid cell
-            "video_resolution": per_cell_res,
+            "video_resolution": log_cfg.video_resolution,
             "video_crf": log_cfg.video_crf,
-            # Render 4 envs into a 2x2 grid. Change `env_indices` to select different envs.
-            "num_envs_to_render": 4,
-            "env_indices": [0, 1, 2, 3],
-            "grid_shape": (2, 2),
         }
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
@@ -130,15 +118,6 @@ def main(run_cfg: RunConfig): # TODO: Add SB3 config support
 
     if not log_cfg.no_wandb:
         run.finish()
-    ###################################
-           # ADAPTATION TESTING #
-    ##################################
-
-    if getattr(train_cfg, "test_adaptation", True):
-        print("\n[INFO] Running friction adaptation test...\n")
-        device = train_cfg.device
-        run_two_friction_tests(env_setup, env_cfg, runner, device)
-
     env.close()
 
 if __name__ == "__main__":
