@@ -19,6 +19,7 @@ from wheeledlab_assets import MUSHR_SUS_2WD_CFG
 from wheeledlab_tasks.common import BlindObsCfg, MushrRWDActionCfg
 
 from .mdp import reset_root_state_along_track
+from .recurrent_policy_cfg import RecurrentDriftObsCfg
 
 ##############################
 ###### COMMON CONSTANTS ######
@@ -99,8 +100,8 @@ class DriftEventsRandomCfg(DriftEventsCfg):
         func=mdp.randomize_rigid_body_material,
         mode="startup",
         params={
-            "static_friction_range": (0.3, 0.5),
-            "dynamic_friction_range": (0.3, 0.5),
+            "static_friction_range": (0.5, 0.7),
+            "dynamic_friction_range": (0.5, 0.7),
             "restitution_range": (0.0, 0.0),
             "num_buckets": 20,
             "asset_cfg": SceneEntityCfg("robot", body_names=".*wheel_link"),
@@ -367,7 +368,6 @@ class DriftTerminationsCfg:
 
 @configclass
 class MushrDriftRLEnvCfg(ManagerBasedRLEnvCfg):
-    """Configuration for the cartpole environment."""
 
     seed: int = 42
     num_envs: int = 1024
@@ -429,3 +429,19 @@ class MushrDriftPlayEnvCfg(MushrDriftRLEnvCfg):
 
     def __post_init__(self):
         super().__post_init__()
+
+
+#############################
+###### RECURRENT ENV ########
+#############################
+
+@configclass
+class MushrDriftRecurrentRLEnvCfg(MushrDriftRLEnvCfg):
+    """Recurrent variant: uses RecurrentDriftObsCfg. Same MDP as base drift env."""
+
+    observations: RecurrentDriftObsCfg = RecurrentDriftObsCfg()
+
+    def __post_init__(self):
+        super().__post_init__()
+        # Optional: enable corruption for recurrent policy training (match base env)
+        self.observations.policy.enable_corruption = True

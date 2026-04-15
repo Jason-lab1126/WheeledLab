@@ -53,4 +53,28 @@ class BlindObsCfg:
             self.concatenate_terms = True
             self.enable_corruption = False
 
+    
+
+    @configclass
+    class CriticCfg(ObsGroup):
+        """Observations for critic group."""
+
+        root_pos_w_term = ObsTerm(
+            func=mdp.root_pos_w,
+        )
+
+        root_euler_xyz_term = ObsTerm(
+            func=root_euler_xyz,
+        )
+
+        base_lin_vel_term = ObsTerm(
+            func=mdp.base_lin_vel,
+        )
+        base_ang_vel_term = ObsTerm(
+            func=mdp.base_ang_vel,
+        )
+        def __post_init__(self):
+            self.concatenate_terms = True
+            self.enable_corruption = False
     policy: PolicyCfg = PolicyCfg()
+    critic: CriticCfg = CriticCfg()

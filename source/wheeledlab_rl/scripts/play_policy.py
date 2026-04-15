@@ -30,6 +30,8 @@ parser.add_argument("--video", action="store_true", help="Record video of the pl
 parser.add_argument("--log-dir", type=str, default="playback/",
                     help="Directory to save logs. If run path is provided, this is ignored.")
 parser.add_argument("--play-name", type=str, default="play-name", help="Name of the playback")
+# Friction override
+parser.add_argument("--friction", type=float, default=None, help="Override friction value (sets both static and dynamic friction)")
 
 simulation_app, args_cli = startup(parser=parser)
 ### Extract task_name and agent_cfg from run_config.pkl ###
@@ -100,7 +102,26 @@ def main(env_cfg: ManagerBasedRLEnvCfg, agent_cfg): # TODO: Add SB3 config suppo
     #### POLICY LOADING CODE ####
     ####################################
 
+    print("[INFO] Creating gym environment...")
     env = gym.make(task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
+    print("[INFO] Environment created successfully!")
+    
+    # Override friction if specified
+    if args_cli.friction is not None:
+        from wheeledlab_rl.utils.adaptation_test import set_friction
+        obs, _ = env.get_observations()  # Initialize environment
+        set_friction(env, args_cli.friction)
+        print(f"[INFO] Friction overridden to: {args_cli.friction}")
+        # Update play name to include friction
+        args_cli.play_name = f"{args_cli.play_name}_friction{args_cli.friction:.3f}"
+
+    ############################################
+    ########### BEGIN PLAYBACK SETUP ###########
+    ############################################
+
+    env.action_space.low = -1.
+    env.action_space.high = 1.
+    env = ClipAction(env)
 
     if args_cli.video:
         video_kwargs = {
@@ -114,14 +135,6 @@ def main(env_cfg: ManagerBasedRLEnvCfg, agent_cfg): # TODO: Add SB3 config suppo
         env = gym.wrappers.RecordVideo(env, **video_kwargs)
 
     env = RslRlVecEnvWrapper(env)
-
-    ############################################
-    ########### BEGIN PLAYBACK SETUP ###########
-    ############################################
-
-    env.action_space.low = -1.
-    env.action_space.high = 1.
-    env = ClipAction(env)
 
     ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict())
     ppo_runner.load(policy_resume_path)

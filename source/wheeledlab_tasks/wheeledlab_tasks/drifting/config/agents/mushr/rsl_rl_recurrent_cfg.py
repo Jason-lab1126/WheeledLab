@@ -7,15 +7,16 @@ from isaaclab_rl.rsl_rl import (
 
 
 @configclass
-class MushrPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class RecurrentPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 128
     max_iterations = 150
     save_interval = 50
-    experiment_name = "ppo_mushr"
+    experiment_name = "ppo_mushr_recurrent"
 
     empirical_normalization = False
 
     policy = RslRlPpoActorCriticCfg(
+        class_name="ActorCriticRecurrent",
         init_noise_std=1.0,
         actor_hidden_dims=[64, 64],
         critic_hidden_dims=[64, 64],

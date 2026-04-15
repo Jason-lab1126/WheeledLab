@@ -1,10 +1,10 @@
 import torch
-
 import gymnasium as gym
 
+
 class ClipAction(gym.ActionWrapper):
-    """ Adapted from https://github.com/openai/gym/blob/master/gym/wrappers/clip_action.py
-        Applies torch clipping instead of numpy
+    """Adapted from https://github.com/openai/gym/blob/master/gym/wrappers/clip_action.py
+    Applies torch clipping instead of numpy
     """
 
     def __init__(self, env: gym.Env):
@@ -24,4 +24,4 @@ class ClipAction(gym.ActionWrapper):
         Returns:
             The clipped action
         """
-        return torch.clip(action, min=self.action_space.low, max=self.action_space.high)
+        return torch.clip(action, self.action_space.low, self.action_space.high)

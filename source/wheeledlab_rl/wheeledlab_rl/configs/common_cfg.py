@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from isaaclab.utils import configclass
 
 from wheeledlab_rl import WHEELEDLAB_RL_LOGS_DIR
-
+from isaaclab_rl.rsl_rl import RslRlPpoActorCriticCfg
 
 @configclass
 class LogConfig:

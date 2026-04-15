@@ -1,0 +1,6 @@
+2802934|auto/log_entropy0.005_seed40_1762286324.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 algorithm.ppo.entropy_coef=0.005
+2803611|auto/log_entropy0.01_seed40_1762286329.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 algorithm.ppo.entropy_coef=0.01
+2804788|auto/log_entropy0.02_seed40_1762286334.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 algorithm.ppo.entropy_coef=0.02
+2809326|auto/log_entropy0.03_seed40_1762286399.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 algorithm.ppo.entropy_coef=0.03
+2810823|auto/log_entropy0.005_seed50_1762286414.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=50 algorithm.ppo.entropy_coef=0.005
+2811889|auto/log_entropy0.01_seed50_1762286419.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=50 algorithm.ppo.entropy_coef=0.01

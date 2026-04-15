@@ -6,3 +6,4 @@ logs/
 wandb/
 outputs/
 **/rgb_maps/
+auto/log_*.txt

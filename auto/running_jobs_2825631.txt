@@ -1,0 +1,3 @@
+2825637|auto/log_entropy0.005_seed40_1762286661.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.005
+2826493|auto/log_entropy0.01_seed40_1762286666.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.01
+2827678|auto/log_entropy0.02_seed40_1762286671.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.02

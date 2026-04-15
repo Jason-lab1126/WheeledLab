@@ -75,9 +75,12 @@ class OnPolicyRunner(runners.OnPolicyRunner):
                         raise ValueError("NaN in actions")
                     obs = self.obs_normalizer(obs)
                     if "critic" in infos["observations"]:
-                        critic_obs = self.critic_obs_normalizer(
-                            infos["observations"]["critic"]
-                        )
+                        if hasattr(self, "critic_obs_normalizer"):
+                            critic_obs = self.critic_obs_normalizer(
+                                infos["observations"]["critic"]
+                            )
+                        else:
+                            critic_obs = infos["observations"]["critic"]
                     else:
                         critic_obs = obs
                     obs, critic_obs, rewards, dones = (

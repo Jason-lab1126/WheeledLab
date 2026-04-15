@@ -1,0 +1,54 @@
+#!/bin/bash
+
+
+WHEELEDLAB_DIR="/home/than/WheeledLab-research" # Change this to your WheeledLab directory
+
+SCRIPT="${WHEELEDLAB_DIR}/source/wheeledlab_rl/scripts/train_mpail.py"
+DATA_DIR="${WHEELEDLAB_DIR}/source/wheeledlab_tasks/wheeledlab_tasks/navigation/config/agents/mushr/yanda_data"
+
+num_demos=(1 4 8 16)
+seeds=(0 1 2 3)
+
+NAME_PREFIX="mpail-om-nav-1e6rb"
+
+MAX_IDLE=300  # seconds of no output before considering the run frozen
+
+for i in "${num_demos[@]}"; do
+    for s in "${seeds[@]}"; do
+
+        data_file="${DATA_DIR}/expert_obs_masked_${i}_demos.pt"
+
+        log_file="${WHEELEDLAB_DIR}/auto/log_$(date +%s).txt"
+
+        run_name="${NAME_PREFIX}-demos_${i}-seed_${s}"
+
+        full_cmd="python ${SCRIPT} --headless \
+                  agent.path_to_demonstrations=${data_file} \
+                  agent.seed=${s} \
+                  train.log.run_name=${run_name}"
+
+        # Run command in background and redirect output
+        echo "Running: $full_cmd"
+        echo "Logging to: $log_file"
+        bash -c "$full_cmd" > "$log_file" 2>&1 &
+        pid=$!
+
+        last_mod_time=$(stat -c %Y "$log_file")
+
+        while kill -0 $pid 2>/dev/null; do
+            sleep 10
+            new_mod_time=$(stat -c %Y "$log_file")
+            now=$(date +%s)
+
+            if (( now - new_mod_time > MAX_IDLE )); then
+                echo "No output for $MAX_IDLE seconds. Killing process: $full_cmd"
+                kill -9 $pid
+                break
+            fi
+
+            last_mod_time=$new_mod_time
+        done
+
+        echo "Command done: $full_cmd"
+    done
+done

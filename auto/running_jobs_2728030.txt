@@ -1,0 +1,9 @@
+2728036|auto/log_entropy0.03,_seed40_1762673648.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.03,
+2729140|auto/log_entropy0.04,_seed40_1762673653.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.04,
+2730294|auto/log_entropy0.05_seed40_1762673658.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=40 agent.algorithm.entropy_coef=0.05
+2735223|auto/log_entropy0.03,_seed50_1762673703.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=50 agent.algorithm.entropy_coef=0.03,
+2735897|auto/log_entropy0.04,_seed50_1762673708.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=50 agent.algorithm.entropy_coef=0.04,
+2741922|auto/log_entropy0.05_seed50_1762673763.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=50 agent.algorithm.entropy_coef=0.05
+2743143|auto/log_entropy0.03,_seed60_1762673768.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=60 agent.algorithm.entropy_coef=0.03,
+2749516|auto/log_entropy0.04,_seed60_1762673833.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=60 agent.algorithm.entropy_coef=0.04,
+2756057|auto/log_entropy0.05_seed60_1762673898.txt|python /home/urviru/WheeledLab/source/wheeledlab_rl/scripts/train_rl.py --headless -r RSS_DRIFT_CONFIG agent.seed=60 agent.algorithm.entropy_coef=0.05

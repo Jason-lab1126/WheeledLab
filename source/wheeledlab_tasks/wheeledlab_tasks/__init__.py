@@ -4,13 +4,13 @@ import gymnasium as gym
 ############ DRIFT ENVS ################
 ########################################
 
-from .drifting import MushrDriftRLEnvCfg, MushrDriftPlayEnvCfg
+from .drifting import MushrDriftRLEnvCfg, MushrDriftPlayEnvCfg, MushrDriftRecurrentRLEnvCfg
 from .visual import MushrVisualRLEnvCfg, MushrVisualPlayEnvCfg
 from .elevation import MushrElevationRLEnvCfg, MushrElevationPlayEnvCfg
+# from .drifting.mushr_reach_goal_cfg import MushrReachGoalRLEnvCfg  # TODO: File doesn't exist yet
 import wheeledlab_tasks.drifting.config.agents.mushr as mushr_drift_agents
 import wheeledlab_tasks.visual.config.agents.mushr as mushr_visual_agents
 import wheeledlab_tasks.elevation.config.agents.mushr as mushr_elevation_agents
-
 gym.register(
     id="Isaac-MushrDriftRL-v0",
     entry_point='isaaclab.envs:ManagerBasedRLEnv',
@@ -20,6 +20,16 @@ gym.register(
         "rsl_rl_cfg_entry_point": f"{mushr_drift_agents.__name__}.rsl_rl_ppo_cfg:MushrPPORunnerCfg",
         "play_env_cfg_entry_point": MushrDriftPlayEnvCfg
     }
+)
+
+
+gym.register(
+    id="Isaac-MushrDriftRecurrentRL-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    kwargs={
+        "env_cfg_entry_point": MushrDriftRecurrentRLEnvCfg,
+        "rsl_rl_cfg_entry_point": f"{mushr_drift_agents.__name__}.rsl_rl_recurrent_cfg:RecurrentPPORunnerCfg",
+        },
 )
 
 
@@ -44,3 +54,5 @@ gym.register(
         "play_env_cfg_entry_point": MushrElevationPlayEnvCfg
     }
 )
+
+
