@@ -3,7 +3,7 @@ Compare performance across different friction values.
 
 Usage:
     python compare_friction_performance.py <playback_dir>
-    
+
     This will find all rollouts files in the directory and compare them.
 """
 
@@ -35,171 +35,170 @@ def load_rollouts(filepath):
 
 
 def compute_performance_metrics(data):
-    """Compute performance metrics from rollouts."""
+    """Compute drift-relevant performance metrics from rollouts.
+    Obs layout (RecurrentDriftObsCfg): root_pos(3), root_euler(3), base_lin_vel(3), base_ang_vel(3), last_action(2)
+    """
     metrics = {}
-    
+
+    if 'observations' in data:
+        obs = data['observations']  # [T, N, D]
+        lin_vel = obs[:, :, 6:9]   # vx, vy, vz in base frame
+        vx = lin_vel[:, :, 0]
+        vy = lin_vel[:, :, 1]
+
+        speed = torch.sqrt(vx**2 + vy**2)
+        slip_angle = torch.abs(torch.atan2(vy, vx))  # radians
+
+        # only count when actually moving
+        moving_mask = torch.abs(vx) > 0.5
+
+        # mean speed
+        metrics['mean_speed_ms'] = speed.mean().item()
+
+        # mean slip angle when moving (degrees)
+        if moving_mask.any():
+            metrics['mean_slip_angle_deg'] = (slip_angle[moving_mask].mean() * 180.0 / 3.14159).item()
+        else:
+            metrics['mean_slip_angle_deg'] = 0.0
+
+        # drift ratio: fraction of time slip > 15 deg (0.25 rad)
+        drifting = (slip_angle > 0.25) & moving_mask
+        metrics['drift_ratio'] = drifting.float().mean().item()
+
+        # spinout rate: slip > 60 deg (1.05 rad) = out of control
+        spinout = (slip_angle > 1.05) & moving_mask
+        metrics['spinout_rate'] = spinout.float().mean().item()
+
+        # cross track distance (using x position as proxy on straights)
+        pos = obs[:, :, 0:3]
+        cross_track = torch.abs(pos[:, :, 0] - 0.8)  # 0.8 = LINE_RADIUS
+        metrics['mean_cross_track_m'] = cross_track.mean().item()
+
     if 'actions' in data:
         actions = data['actions']
-        num_steps, num_envs, action_dim = actions.shape
-        
-        if action_dim == 2:
-            throttle = actions[:, :, 0]
-            steer = actions[:, :, 1]
-            
-            metrics['mean_throttle'] = throttle.mean().item()
-            metrics['mean_steer'] = steer.mean().item()
-            metrics['throttle_std'] = throttle.std().item()
-            metrics['steer_std'] = steer.std().item()
-            
-            # Action smoothness (lower std = smoother)
-            metrics['action_smoothness'] = 1.0 / (1.0 + throttle.std().item() + steer.std().item())
-            
-            # Action consistency (how consistent actions are over time)
-            throttle_temporal_std = throttle.std(dim=0).mean().item()
-            steer_temporal_std = steer.std(dim=0).mean().item()
-            metrics['temporal_consistency'] = 1.0 / (1.0 + throttle_temporal_std + steer_temporal_std)
-    
-    if 'observations' in data:
-        obs = data['observations']
-        # Observation stability
-        metrics['obs_stability'] = 1.0 / (1.0 + obs.std().item())
-        
-        # Observation trend
-        obs_per_timestep = obs.mean(dim=2)
-        obs_trend = (obs_per_timestep[-1] - obs_per_timestep[0]).mean().item()
-        metrics['obs_trend'] = obs_trend
-    
+        throttle = actions[:, :, 0]
+        steer = actions[:, :, 1]
+        metrics['mean_throttle'] = throttle.mean().item()
+        metrics['mean_steer_abs'] = steer.abs().mean().item()
+
     return metrics
 
 
 def compare_friction_performance(playback_dir):
     """Compare performance across different friction values."""
     playback_path = Path(playback_dir)
-    
-    # Find all rollouts files
+
     rollouts_files = list(playback_path.glob("*rollouts.pt"))
-    
+
     if not rollouts_files:
         print(f"No rollouts files found in {playback_dir}")
         return
-    
+
     print(f"Found {len(rollouts_files)} rollouts files")
-    
-    # Load and analyze each file
+
     results = []
     for filepath in sorted(rollouts_files):
         friction = extract_friction_from_filename(filepath.name)
         if friction is None:
             friction = "default"
-        
+
         print(f"\nLoading: {filepath.name}")
         data = load_rollouts(filepath)
         metrics = compute_performance_metrics(data)
-        
+
         results.append({
             'file': filepath.name,
             'friction': friction,
             'metrics': metrics,
             'data': data
         })
-    
-    # Print comparison table
+
     print(f"\n{'='*80}")
-    print("Performance Comparison Across Friction Values")
+    print("Drift Performance Comparison Across Friction Values")
     print(f"{'='*80}")
-    
-    # Sort by friction value
+
     numeric_results = [(r['friction'], r) for r in results if isinstance(r['friction'], (int, float))]
     default_results = [(r['friction'], r) for r in results if not isinstance(r['friction'], (int, float))]
     numeric_results.sort(key=lambda x: x[0])
     all_results = numeric_results + default_results
-    
-    # Print header
+
     if all_results:
         metric_keys = list(all_results[0][1]['metrics'].keys())
         print(f"\n{'Friction':<15}", end="")
         for key in metric_keys:
-            print(f"{key:<20}", end="")
+            print(f"{key:<25}", end="")
         print()
-        print("-" * (15 + 20 * len(metric_keys)))
-        
-        # Print data
+        print("-" * (15 + 25 * len(metric_keys)))
+
         for friction, result in all_results:
             print(f"{str(friction):<15}", end="")
             for key in metric_keys:
                 value = result['metrics'].get(key, 0.0)
-                print(f"{value:<20.4f}", end="")
+                print(f"{value:<25.4f}", end="")
             print()
-    
-    # Plot comparison if matplotlib available
+
     if HAS_MATPLOTLIB and len(numeric_results) > 1:
         plot_friction_comparison(all_results, playback_path)
-    
+
     return results
 
 
 def plot_friction_comparison(results, save_dir):
-    """Plot performance metrics vs friction."""
+    """Plot drift metrics vs friction."""
     if not HAS_MATPLOTLIB:
         return
-    
+
     numeric_results = [(r['friction'], r) for r in results if isinstance(r['friction'], (int, float))]
     if len(numeric_results) < 2:
         print("\nNeed at least 2 numeric friction values to plot")
         return
-    
+
     numeric_results.sort(key=lambda x: x[0])
     frictions = [r[0] for r in numeric_results]
-    
-    # Get all metric keys
+
     metric_keys = list(numeric_results[0][1]['metrics'].keys())
-    
-    # Create subplots
+
     num_metrics = len(metric_keys)
     cols = min(3, num_metrics)
     rows = (num_metrics + cols - 1) // cols
-    
+
     fig, axes = plt.subplots(rows, cols, figsize=(6 * cols, 4 * rows))
     if num_metrics == 1:
         axes = [axes]
     else:
         axes = axes.flatten()
-    
+
     for idx, metric_key in enumerate(metric_keys):
         ax = axes[idx]
         values = [r[1]['metrics'].get(metric_key, 0.0) for r in numeric_results]
-        
+
         ax.plot(frictions, values, 'o-', linewidth=2, markersize=8)
         ax.set_xlabel('Friction')
         ax.set_ylabel(metric_key.replace('_', ' ').title())
         ax.set_title(f'{metric_key.replace("_", " ").title()} vs Friction')
         ax.grid(True, alpha=0.3)
-    
-    # Hide unused subplots
+
     for idx in range(num_metrics, len(axes)):
         axes[idx].axis('off')
-    
+
     plt.tight_layout()
-    save_path = save_dir / "friction_comparison.png"
+    save_path = save_dir / "drift_friction_comparison.png"
     plt.savefig(save_path, dpi=150)
     print(f"\nSaved comparison plot to: {save_path}")
     plt.close()
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Compare performance across friction values")
+    parser = argparse.ArgumentParser(description="Compare drift performance across friction values")
     parser.add_argument("playback_dir", type=str, help="Directory containing rollouts files")
     parser.add_argument("--show", action="store_true", help="Display plots")
-    
+
     args = parser.parse_args()
-    
+
     compare_friction_performance(args.playback_dir)
 
 
 if __name__ == "__main__":
     main()
-
-
-
 
 
